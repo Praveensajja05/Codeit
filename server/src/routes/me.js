@@ -28,10 +28,11 @@ router.get("/", async (req, res) => {
 });
 
 const HANDLE = /^[A-Za-z0-9_.-]{2,24}$/;
-const cleanHandle = (value, label) => {
+const LEETCODE_HANDLE = /^[A-Za-z0-9_.-]{2,40}$/;   // LeetCode usernames can be longer
+const cleanHandle = (value, label, pattern = HANDLE) => {
   const h = (value ?? "").trim();
   if (!h) return null;
-  if (!HANDLE.test(h)) throw new HttpError(400, `${label} handle has invalid characters.`);
+  if (!pattern.test(h)) throw new HttpError(400, `${label} handle has invalid characters.`);
   return h;
 };
 
@@ -41,16 +42,17 @@ router.put("/", async (req, res) => {
   const name = body.name?.trim() || current.name;
   const cf = "codeforcesHandle" in body ? cleanHandle(body.codeforcesHandle, "Codeforces") : current.codeforces_handle;
   const ac = "atcoderHandle" in body ? cleanHandle(body.atcoderHandle, "AtCoder") : current.atcoder_handle;
+  const lc = "leetcodeHandle" in body ? cleanHandle(body.leetcodeHandle, "LeetCode", LEETCODE_HANDLE) : current.leetcode_handle;
   const min = Number(body.dailyMinRating ?? current.daily_min_rating);
   const max = Number(body.dailyMaxRating ?? current.daily_max_rating);
   if (![min, max].every(Number.isInteger) || min < 800 || max > 3500 || min > max) {
     throw new HttpError(400, "Daily rating range must be whole numbers between 800 and 3500, with min ≤ max.");
   }
   const { rows } = await query(
-    `UPDATE users SET name = $2, codeforces_handle = $3, atcoder_handle = $4,
-       daily_min_rating = $5, daily_max_rating = $6
+    `UPDATE users SET name = $2, codeforces_handle = $3, atcoder_handle = $4, leetcode_handle = $5,
+       daily_min_rating = $6, daily_max_rating = $7
      WHERE id = $1 RETURNING ${USER_COLUMNS}`,
-    [req.user.id, name, cf, ac, min, max],
+    [req.user.id, name, cf, ac, lc, min, max],
   );
   res.json({ user: rows[0] });
 });

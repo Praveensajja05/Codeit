@@ -17,6 +17,7 @@ export default function Profile() {
       name: d.user.name,
       codeforcesHandle: d.user.codeforces_handle ?? "",
       atcoderHandle: d.user.atcoder_handle ?? "",
+      leetcodeHandle: d.user.leetcode_handle ?? "",
       dailyMinRating: d.user.daily_min_rating,
       dailyMaxRating: d.user.daily_max_rating,
     });
@@ -69,6 +70,7 @@ export default function Profile() {
         <label>Name<input value={form.name} onChange={set("name")} required /></label>
         <label>Codeforces handle<input value={form.codeforcesHandle} onChange={set("codeforcesHandle")} placeholder="e.g. tourist" /></label>
         <label>AtCoder handle<input value={form.atcoderHandle} onChange={set("atcoderHandle")} /></label>
+        <label>LeetCode username<input value={form.leetcodeHandle} onChange={set("leetcodeHandle")} /></label>
         <fieldset>
           <legend>Daily problem rating range</legend>
           <span className="range">
@@ -87,7 +89,10 @@ export default function Profile() {
           : Object.entries(counts).map(([p, n]) => `${PLATFORM_NAMES[p]}: ${n}`).join(" · ")}
       </p>
       <button onClick={sync} disabled={busy}>Sync solved problems</button>
-      <p className="muted small">LeetCode solves can't be synced: LeetCode only shares a user's most recent submissions publicly.</p>
+      <p className="muted small">
+        LeetCode solves can't be synced: LeetCode only shares a user's most recent submissions publicly.
+        Your LeetCode username is used to check the LeetCode daily problem.
+      </p>
       {status && <p className="status">{status}</p>}
     </section>
   );

@@ -5,7 +5,7 @@ import { HttpError } from "../utils/errors.js";
 import { signToken } from "../utils/token.js";
 
 export const USER_COLUMNS =
-  "id, name, email, codeforces_handle, atcoder_handle, daily_min_rating, daily_max_rating";
+  "id, name, email, codeforces_handle, atcoder_handle, leetcode_handle, daily_min_rating, daily_max_rating";
 
 const router = Router();
 

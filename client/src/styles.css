@@ -104,11 +104,19 @@ legend { font-weight: 500; padding: 0 0.3rem; }
 
 .pager { display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1rem; }
 
-.streak { font-size: 1rem; color: var(--muted); margin: 0 0 0.25rem; }
-.streak strong { font-size: 2.5rem; color: var(--text); font-weight: 600; margin-right: 0.3rem; }
-.daily-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.2rem; display: grid; gap: 0.6rem; }
-.daily-name { font-size: 1.15rem; font-weight: 600; color: var(--text); text-decoration: none; }
+.daily { max-width: 780px; }
+.streaks { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 2rem; margin: 0 0 1.25rem; }
+.streaks p { margin: 0; color: var(--muted); }
+.streaks strong { color: var(--text); font-weight: 600; }
+.streak-main strong { font-size: 2.5rem; margin-right: 0.3rem; }
+.streak-other strong { font-size: 1.25rem; margin-left: 0.25rem; }
+.daily-row { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 1rem; align-items: center; padding: 0.9rem 1rem; }
+.daily-problem { display: grid; gap: 0.2rem; min-width: 0; }
+.daily-problem p { margin: 0; }
+.daily-details { display: flex; gap: 0.75rem; align-items: baseline; min-width: 0; }
+.daily-name { font-size: 1.05rem; font-weight: 600; color: var(--text); text-decoration: none; }
 .daily-name:hover { text-decoration: underline; }
+.daily-action { justify-self: end; text-align: right; }
 
 @media (max-width: 720px) {
   .contest { grid-template-columns: 1fr auto; }
@@ -116,5 +124,7 @@ legend { font-weight: 500; padding: 0 0.3rem; }
   .problem { grid-template-columns: 1fr auto auto; }
   .problem .platform, .problem .tags, .problem .solved-mark { display: none; }
   .problem .pid { grid-column: 1; }
+  .daily-row { grid-template-columns: 1fr; gap: 0.5rem; }
+  .daily-action { justify-self: start; text-align: left; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
