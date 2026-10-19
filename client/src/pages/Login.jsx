@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext.jsx";
 
 export default function Login() {
   const { user, authenticate } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState("login");
   const [fields, setFields] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  // Where to go after login: the page that sent us here, but only if it is a page inside this app.
+  // "//evil.com" or "/\evil.com" would leave the site, so anything like that falls back to "/".
+  const target = location.state?.from;
+  const from = typeof target === "string" && target.startsWith("/")
+    && !target.startsWith("//") && !target.startsWith("/\\") ? target : "/";
+
+  if (user) return <Navigate to={from} replace />;
   const set = (key) => (e) => setFields({ ...fields, [key]: e.target.value });
 
   async function submit(e) {
@@ -19,8 +24,8 @@ export default function Login() {
     setError("");
     setBusy(true);
     try {
+      // No navigate() here: once the user is set, the Navigate line above sends them to `from`.
       await authenticate(mode, fields);
-      navigate(location.state?.from || "/", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
