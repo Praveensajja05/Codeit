@@ -35,6 +35,20 @@ export function StarButton({ active, onClick, label }) {
   );
 }
 
+export function BellButton({ active, onClick, label }) {
+  return (
+    <button
+      className={`bell ${active ? "on" : ""}`}
+      onClick={onClick}
+      aria-pressed={active}
+      aria-label={active ? `Turn off the email reminder for ${label}` : `Email me before ${label} starts`}
+      title={active ? "Reminder on: click to turn off" : "Email me before it starts"}
+    >
+      🔔
+    </button>
+  );
+}
+
 export function ProblemRow({ problem, onToggleFavorite, showStar }) {
   return (
     <li className={`problem ${problem.is_solved ? "solved" : ""}`}>

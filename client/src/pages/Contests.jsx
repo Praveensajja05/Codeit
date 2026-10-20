@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { useAuth } from "../AuthContext.jsx";
-import { StarButton } from "../components/bits.jsx";
+import { BellButton, StarButton } from "../components/bits.jsx";
 
 const PLATFORMS = ["All", "Codeforces", "AtCoder", "LeetCode", "CodeChef", "GeeksforGeeks"];
 
@@ -26,7 +26,7 @@ export function duration(startIso, endIso) {
 const when = (iso) =>
   new Date(iso).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-export function ContestRow({ contest, onToggleFavorite, showStar }) {
+export function ContestRow({ contest, onToggleFavorite, showStar, onToggleReminder, showBell }) {
   return (
     <li className="contest">
       <span className={`platform p-${contest.platform.toLowerCase()}`}>{contest.platform}</span>
@@ -36,6 +36,7 @@ export function ContestRow({ contest, onToggleFavorite, showStar }) {
         <a className="calendar" href={contest.calendarUrl} target="_blank" rel="noreferrer">Add to Google Calendar</a>
       )}
       {showStar && <StarButton active={contest.isFavorite} onClick={() => onToggleFavorite(contest)} label={contest.title} />}
+      {showBell && <BellButton active={contest.hasReminder} onClick={() => onToggleReminder(contest)} label={contest.title} />}
     </li>
   );
 }
@@ -45,6 +46,7 @@ export default function Contests() {
   const [platform, setPlatform] = useState("All");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
+  const [reminderInfo, setReminderInfo] = useState(null);
 
   useEffect(() => {
     let cancelled = false;   // ignore a slow old response if the filter changed meanwhile
@@ -56,6 +58,24 @@ export default function Contests() {
       .catch((e) => !cancelled && setError(e.message));
     return () => { cancelled = true; };
   }, [platform, user]);
+
+  useEffect(() => {
+    if (!user) return setReminderInfo(null);
+    api("/reminders").then(setReminderInfo).catch(() => setReminderInfo(null));
+  }, [user]);
+
+  async function toggleReminder(contest) {
+    try {
+      const path = `/reminders/${encodeURIComponent(contest.key)}`;
+      await api(path, { method: contest.hasReminder ? "DELETE" : "POST" });
+      setData((d) => ({
+        ...d,
+        contests: d.contests.map((c) => (c.key === contest.key ? { ...c, hasReminder: !c.hasReminder } : c)),
+      }));
+    } catch (e) {
+      setError(e.message);
+    }
+  }
 
   async function toggleFavorite(contest) {
     try {
@@ -83,6 +103,12 @@ export default function Contests() {
           </button>
         ))}
       </div>
+      {reminderInfo && (
+        <p className="muted small">
+          🔔 Turn on a reminder and Codeit emails {user.email} about {reminderInfo.leadMinutes} minutes before the contest starts.
+          {!reminderInfo.emailConfigured && " Email isn't set up on this server yet, so reminders are printed in the server terminal instead."}
+        </p>
+      )}
       {data?.source === "codeforces-only" && (
         <p className="notice">Showing Codeforces contests only. Add a Clist API key on the server to include the other platforms.</p>
       )}
@@ -92,7 +118,14 @@ export default function Contests() {
       {data && (
         <ul className="list">
           {data.contests.map((c) => (
-            <ContestRow key={c.key} contest={c} onToggleFavorite={toggleFavorite} showStar={Boolean(user)} />
+            <ContestRow
+              key={c.key}
+              contest={c}
+              onToggleFavorite={toggleFavorite}
+              showStar={Boolean(user)}
+              onToggleReminder={toggleReminder}
+              showBell={Boolean(user)}
+            />
           ))}
         </ul>
       )}

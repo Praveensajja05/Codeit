@@ -76,6 +76,24 @@ CREATE TABLE IF NOT EXISTS daily_solves (
   PRIMARY KEY (user_id, platform, day)
 );
 
+-- Email reminders: one row per contest a user asked to be reminded about.
+-- Contests are not stored, so like favorites it keeps a copy of the details (taken from the
+-- server's own contest list, never from the browser). sent_at stays NULL until the email goes out;
+-- the reminder job claims a row by setting it, so the same reminder can never be sent twice.
+CREATE TABLE IF NOT EXISTS contest_reminders (
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  contest_key TEXT NOT NULL,
+  title       TEXT NOT NULL,
+  platform    TEXT NOT NULL,
+  url         TEXT NOT NULL,
+  start_time  TIMESTAMPTZ NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  sent_at     TIMESTAMPTZ,
+  PRIMARY KEY (user_id, contest_key)
+);
+-- The job only ever looks for unsent reminders by start time.
+CREATE INDEX IF NOT EXISTS contest_reminders_due_idx ON contest_reminders (start_time) WHERE sent_at IS NULL;
+
 -- Upgrade from the first version, which kept Codeforces solves in daily_challenges.solved_at:
 -- copy them into daily_solves, then drop the old column. It only runs while that column exists,
 -- so running db:init again does nothing.

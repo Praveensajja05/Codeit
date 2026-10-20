@@ -1,13 +1,17 @@
 # Codeit
 
-A competitive-programming companion: upcoming contests from five platforms, one searchable
+A competitive-programming companion: upcoming contests with email reminders, one searchable
 problem list across Codeforces, AtCoder and LeetCode, favorites, and daily problems from
 Codeforces, LeetCode and GeeksforGeeks with streaks.
 
 ## Features
 
-- **Contests**: upcoming contests from Codeforces, AtCoder, LeetCode, CodeChef and GeeksforGeeks
-  (through the Clist.by API), filterable by platform, each with an "Add to Google Calendar" link.
+- **Contests**: upcoming contests from Codeforces, AtCoder, LeetCode and CodeChef (through the
+  Clist.by API), filterable by platform, each with an "Add to Google Calendar" link.
+  GeeksforGeeks contests are requested too, but none have shown up in testing yet (see limitations).
+- **Contest reminders**: click the 🔔 on any contest and Codeit emails you about 30 minutes before
+  it starts. You choose each contest yourself; nothing is emailed unless you turn it on. Your
+  reminders are listed on the Profile page, where you can remove them.
 - **Problems**: one list across Codeforces, AtCoder and LeetCode. Search by name or ID, filter by
   tag (tags are unified, so "dp" and "Dynamic Programming" are one filter), rating range or
   LeetCode difficulty, and "only unsolved".
@@ -52,10 +56,14 @@ npm run dev                   # open http://localhost:5173
 
 Without a Clist API key, the contests page shows Codeforces contests only.
 
+**Reminder emails** need an SMTP account in `.env` (see `.env.example`; for Gmail, use an App
+Password, never your real password). Without one, reminders are printed in the server terminal,
+so you can still try the feature. Reminders are only sent while the server is running.
+
 ## Tests
 
 `cd server && npm test` runs unit tests for the streak rules, the daily day boundaries, the
-Google Calendar link, AtCoder difficulty and tag normalization.
+Google Calendar link, AtCoder difficulty, tag normalization and the reminder email.
 
 ## Design decisions
 
@@ -79,6 +87,13 @@ Google Calendar link, AtCoder difficulty and tag normalization.
   sync reports which one failed.
 - **The server refuses to start** without `DATABASE_URL` or with a weak `JWT_SECRET`.
 - **Contests are cached for 10 minutes**, because Clist limits how often you can call it.
+- **A reminder is never emailed twice.** Every minute the server claims due reminders with one
+  `UPDATE ... SET sent_at = now() WHERE sent_at IS NULL ... RETURNING`, so two runs at the same
+  moment can't both get the same row. A first version that read the rows first and marked them
+  afterwards sent 2 emails for one reminder when 10 runs overlapped; the single statement sends 1.
+  If sending fails, the row is un-claimed and retried on the next run, until the contest starts.
+- **Reminder details come from the server.** The browser sends only the contest's ID; the title,
+  link and start time are copied from the server's own contest list.
 
 ## Data sources and limitations
 
@@ -90,8 +105,12 @@ Google Calendar link, AtCoder difficulty and tag normalization.
   problems are left out. LeetCode solves can't be synced, because only recent submissions are
   public; those recent submissions are enough to check today's daily question.
 - CodeChef: contests only. It has no usable public problem API.
-- GeeksforGeeks: contests, and a link to its Problem of the Day. It has no public API, so the app
-  can't show the problem's name or check a solve.
+- GeeksforGeeks: a link to its Problem of the Day. It has no public API, so the app can't show
+  the problem's name or check a solve. Its contests are requested from Clist, but none have
+  appeared yet; whether that's an empty schedule or a different name on Clist isn't confirmed.
+- Reminders keep a copy of the contest's start time from when you turned them on. If a contest
+  is rescheduled after that, the email goes out at the old time. They're only sent while the
+  server is running, since Codeit isn't deployed anywhere.
 
 ## How it was built
 

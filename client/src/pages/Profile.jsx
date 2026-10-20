@@ -9,6 +9,7 @@ export default function Profile() {
   const [counts, setCounts] = useState({});
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [reminders, setReminders] = useState(null);
 
   async function load() {
     const d = await api("/me");
@@ -23,7 +24,21 @@ export default function Profile() {
     });
   }
 
-  useEffect(() => { load().catch((e) => setStatus(e.message)); }, []);
+  const loadReminders = () => api("/reminders").then(setReminders);
+
+  useEffect(() => {
+    load().catch((e) => setStatus(e.message));
+    loadReminders().catch((e) => setStatus(e.message));
+  }, []);
+
+  async function removeReminder(key) {
+    try {
+      await api(`/reminders/${encodeURIComponent(key)}`, { method: "DELETE" });
+      await loadReminders();
+    } catch (err) {
+      setStatus(err.message);
+    }
+  }
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
@@ -94,6 +109,34 @@ export default function Profile() {
         Your LeetCode username is used to check the LeetCode daily problem.
       </p>
       {status && <p className="status">{status}</p>}
+
+      <h2>Contest reminders</h2>
+      {reminders && (
+        <>
+          <p className="muted small">
+            You get an email about {reminders.leadMinutes} minutes before each of these contests.
+            Add more with the 🔔 on the Contests page.
+            {!reminders.emailConfigured && " Email isn't set up on this server yet, so reminders are printed in the server terminal."}
+          </p>
+          {reminders.reminders.length === 0 ? (
+            <p className="muted">No reminders turned on.</p>
+          ) : (
+            <ul className="list reminders">
+              {reminders.reminders.map((r) => (
+                <li key={r.key} className="reminder">
+                  <span className={`platform p-${r.platform.toLowerCase()}`}>{r.platform}</span>
+                  <a href={r.url} target="_blank" rel="noreferrer">{r.title}</a>
+                  <span className="muted small">
+                    {new Date(r.start).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    {r.sentAt && " · sent"}
+                  </span>
+                  <button onClick={() => removeReminder(r.key)}>Remove</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
     </section>
   );
 }

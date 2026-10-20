@@ -76,7 +76,7 @@ legend { font-weight: 500; padding: 0 0.3rem; }
 .list > li { border-bottom: 1px solid var(--line); }
 .list > li:last-child { border-bottom: none; }
 
-.contest { display: grid; grid-template-columns: 7.5rem 1fr auto auto 2rem; gap: 1rem; align-items: center; padding: 0.7rem 1rem; }
+.contest { display: grid; grid-template-columns: 7.5rem 1fr auto auto 2rem 2rem; gap: 1rem; align-items: center; padding: 0.7rem 1rem; }
 .cname { color: var(--text); font-weight: 500; text-decoration: none; }
 .cname:hover { text-decoration: underline; }
 .when { text-align: right; font-size: 0.9rem; }
@@ -101,6 +101,9 @@ legend { font-weight: 500; padding: 0 0.3rem; }
 
 .star { border: none; background: none; font-size: 1.15rem; padding: 0; color: var(--muted); line-height: 1; }
 .star.on { color: #e3a008; }
+.bell { border: none; background: none; font-size: 1.05rem; padding: 0; line-height: 1; opacity: 0.3; filter: grayscale(1); }
+.bell.on { opacity: 1; filter: none; }
+.reminder { display: grid; grid-template-columns: 6.5rem 1fr auto auto; gap: 0.75rem; align-items: center; padding: 0.6rem 1rem; }
 
 .pager { display: flex; gap: 1rem; align-items: center; justify-content: center; margin-top: 1rem; }
 
@@ -119,8 +122,12 @@ legend { font-weight: 500; padding: 0 0.3rem; }
 .daily-action { justify-self: end; text-align: right; }
 
 @media (max-width: 720px) {
-  .contest { grid-template-columns: 1fr auto; }
-  .contest .platform, .contest .calendar { grid-column: 1; }
+  /* Phone: platform, name and time each get a full line; link, star and bell share the last one. */
+  .contest { grid-template-columns: 1fr auto auto; gap: 0.3rem 1rem; }
+  .contest .platform, .contest .cname, .contest .when { grid-column: 1 / -1; }
+  .contest .when { text-align: left; }
+  .contest .when small { display: inline; margin-left: 0.5rem; }
+  .reminder { grid-template-columns: 1fr auto; }
   .problem { grid-template-columns: 1fr auto auto; }
   .problem .platform, .problem .tags, .problem .solved-mark { display: none; }
   .problem .pid { grid-column: 1; }

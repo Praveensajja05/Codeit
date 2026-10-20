@@ -6,6 +6,7 @@ import contestRoutes from "./routes/contests.js";
 import problemRoutes from "./routes/problems.js";
 import favoriteRoutes from "./routes/favorites.js";
 import dailyRoutes from "./routes/daily.js";
+import reminderRoutes from "./routes/reminders.js";
 
 export function createApp() {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp() {
   app.use("/api/problems", problemRoutes);
   app.use("/api/favorites", favoriteRoutes);
   app.use("/api/daily", dailyRoutes);
+  app.use("/api/reminders", reminderRoutes);
 
   app.use((req, res) => res.status(404).json({ error: "Not found." }));
 
